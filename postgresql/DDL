@@ -1,0 +1,283 @@
+sudo -i -u postgres
+psql
+\c univdb
+create table classroom (
+	building varchar(40),
+	room_no char(3),
+	capacity smallint,
+	primary key(building, room_no)
+);
+
+create table time_slot (
+	time_slot_id char(2),
+	day char(7),
+	start_time time,
+	end_time time,
+	primary key(time_slot_id)
+);
+
+// foreign key (course_id) references course;
+create table section (
+	course_id char(7),
+	sec_id char(2),
+	semester char(1),
+	year char(4),
+	building varchar(40),
+	room_no char(3),
+	time_slot_id char(2),
+	primary key(course_id, sec_id, semester, year),
+	foreign key(building, room_no) references classroom,
+	foreign key(time_slot_id) references time_slot
+);
+
+// foreign key (id) references student;
+// sec_id has dropped from primary key
+create table takes (
+	id char(10),
+	course_id char(7),
+	sec_id char(2),
+	semester char(1),
+	year char(4),
+	grade char(2),
+	primary key (id, course_id, semester, year),
+	foreign key(course_id, sec_id, semester, year) references section
+);
+
+// foreign (dept_name) references department;
+create table student (
+	id char(10),
+	name char(10),
+	dept_name varchar(40),
+	tot_cred smallint,
+	primary key(id)
+);
+
+create table department (
+	dept_name varchar(40),
+	building varchar(40),
+	budget int,
+	primary key(dept_name)
+);
+
+create table course (
+	course_id char(7),
+	title varchar(40),
+	dept_name varchar(40),
+	credits smallint,
+	primary key(course_id),
+	foreign key (dept_name) references department
+);
+
+create table prereq (
+	course_id char(7),
+	prereq_id char(7),
+	foreign key (course_id) references course,
+	foreign key (prereq_id) references course
+);
+
+create table instructor (
+	id char(6) primary key,
+	name char(10),
+	dept_name varchar(40),
+	salary int,
+	foreign key (dept_name) references department
+);
+
+create table advisor (
+	s_id char(10) primary key,
+	i_id char(6),
+	foreign key (s_id) references student,
+	foreign key (i_id) references instructor
+);
+
+create table teaches (
+	id char(6),
+	course_id char(7),
+	sec_id char(2),
+	semester char(1),
+	year char(4),
+	primary key (id, course_id, sec_id, semester, year),
+	foreign key (id) references instructor,
+	foreign key (course_id, sec_id, semester, year) references section
+);
+
+insert into classroom values ('Informatics BLDG', '101', 40);
+insert into classroom values ('Informatics BLDG', '102', 80);
+insert into classroom values ('Informatics BLDG', '103', 120);
+insert into classroom values ('Liberal Arts BLDG', '101', 30);
+insert into classroom values ('Liberal Arts BLDG', '102', 60);
+insert into classroom values ('Liberal Arts BLDG', '103', 90);
+insert into classroom values ('Social Sciences BLDG', '101', 45);
+insert into classroom values ('Social Sciences BLDG', '102', 90);
+insert into classroom values ('Social Sciences BLDG', '103', 135);
+insert into classroom values ('Engineering BLDG', '101', 40);
+insert into classroom values ('Engineering BLDG', '102', 60);
+insert into classroom values ('Engineering BLDG', '103', 80);
+
+insert into time_slot values ('01', 'Mon,Wed', '09:00', '10:15');
+insert into time_slot values ('02', 'Mon,Wed', '10:30', '11:45');
+insert into time_slot values ('03', 'Mon,Wed', '12:00', '12:50');
+insert into time_slot values ('04', 'Mon,Wed', '13:00', '13:50');
+insert into time_slot values ('05', 'Mon,Wed', '14:00', '15:15');
+insert into time_slot values ('06', 'Mon,Wed', '15:30', '16:45');
+insert into time_slot values ('07', 'Mon,Wed', '17:00', '18:15');
+insert into time_slot values ('11', 'Tue,Thu', '09:00', '10:15');
+insert into time_slot values ('12', 'Tue,Thu', '10:30', '11:45');
+insert into time_slot values ('13', 'Tue,Thu', '12:00', '12:50');
+insert into time_slot values ('14', 'Tue,Thu', '13:00', '13:50');
+insert into time_slot values ('15', 'Tue,Thu', '14:00', '15:15');
+insert into time_slot values ('16', 'Tue,Thu', '15:30', '16:45');
+insert into time_slot values ('17', 'Tue,Thu', '17:00', '18:15');
+
+insert into department values ('Computer Science', 'Informatics BLDG', 100000);
+insert into department values ('Korean Language and Literature', 'Liberal Arts BLDG', 200000);
+insert into department values ('Philosophy', 'Liberal Arts BLDG', 300000);
+insert into department values ('Psychology', 'Liberal Arts BLDG', 400000);
+insert into department values ('Library and Information Science', 'Social Sciences BLDG', 500000);
+insert into department values ('Commerce and Trade', 'Social Sciences BLDG', 600000);
+insert into department values ('Administration', 'Social Sciences BLDG', 700000);
+insert into department values ('Political Science and Diplomacy', 'Social Sciences BLDG', 800000);
+insert into department values ('Mechanical Engineering', 'Engineering BLDG', 700000);
+insert into department values ('Architecture', 'Engineering BLDG', 600000);
+
+// 11 instructors
+insert into instructor values ( '000001', 'Kim', 'Computer Science', 2400);
+insert into instructor values ( '000002', 'Lee', 'Korean Language and Literature', 3000);
+insert into instructor values ( '000003', 'Park', 'Philosophy', 3600);
+insert into instructor values ( '000004', 'Hong', 'Psychology', 7200);
+insert into instructor values ( '000005', 'Ryu', 'Computer Science', 6000);
+insert into instructor values ( '000006', 'Yuk', 'Library and Information Science', 5400);
+insert into instructor values ( '000007', 'Chong', 'Commerce and Trade', 9000);
+insert into instructor values ( '000008', 'Oh', 'Administration', 10800);
+insert into instructor values ( '000009', 'Yoon', 'Political Science and Diplomacy', 1500);
+insert into instructor values ( '000010', 'Hwang', 'Mechanical Engineering', 2400);
+insert into instructor values ( '000011', 'Kim', 'Architecture', 8000);
+
+// 21 students
+insert into student values ('2016001001', 'Yoo', 'Computer Science', 126);
+insert into student values ('2016001002', 'Kim', 'Computer Science', 120);
+insert into student values ('2016002001', 'Lee', 'Korean Language and Literature', 123);
+insert into student values ('2016002002', 'Lee', 'Korean Language and Literature', 135);
+insert into student values ('2016002003', 'Chong', 'Korean Language and Literature', 132);
+insert into student values ('2016003001', 'Yoon', 'Philosophy', 126);
+insert into student values ('2017003001', 'Seo', 'Philosophy', 105);
+insert into student values ('2017004001', 'Oh', 'Psychology', 99);
+insert into student values ('2017005001', 'Park', 'Library and Information Science', 102);
+insert into student values ('2017005002', 'Hong', 'Library and Information Science', 99);
+insert into student values ('2017006001', 'Hwang', 'Commerce and Trade', 96);
+insert into student values ('2018006001', 'Michael', 'Commerce and Trade', 60);
+insert into student values ('2018006002', 'Paul', 'Commerce and Trade', 57);
+insert into student values ('2018007001', 'Sung', 'Administration', 54);
+insert into student values ('2018007002', 'Chae', 'Administration', 54);
+insert into student values ('2018008001', 'Jung', 'Political Science and Diplomacy', 51);
+insert into student values ('2019008001', 'Ahn', 'Political Science and Diplomacy', 18);
+insert into student values ('2019009001', 'Gang', 'Mechanical Engineering', 15);
+insert into student values ('2019009002', 'Ha', 'Mechanical Engineering', 15);
+insert into student values ('2019010001', 'Song', 'Architecture', 18);
+insert into student values ('2019010002', 'Ji', 'Architecture', 18);
+
+insert into advisor values('2016001001', '000001');
+insert into advisor values('2016001002', '000005');
+insert into advisor values('2016002001', '000002');
+insert into advisor values('2016002002', '000002');
+insert into advisor values('2016002003', '000002');
+insert into advisor values('2016003001', '000003');
+insert into advisor values('2017003001', '000003');
+insert into advisor values('2017004001', '000004');
+insert into advisor values('2017005001', '000006');
+insert into advisor values('2017005002', '000006');
+insert into advisor values('2017006001', '000006');
+insert into advisor values('2018006001', '000007');
+insert into advisor values('2018006002', '000007');
+insert into advisor values('2018007001', '000008');
+insert into advisor values('2018007002', '000008');
+insert into advisor values('2018008001', '000009');
+insert into advisor values('2019008001', '000009');
+insert into advisor values('2019009001', '000010');
+insert into advisor values('2019009002', '000010');
+insert into advisor values('2019010001', '000011');
+insert into advisor values('2019010002', '000011');
+
+insert into course values ('COSE101', 'Programming', 'Computer Science', 3);
+insert into course values ('COSE102', 'Algorithm', 'Computer Science', 3);
+insert into course values ('KORE401', 'Korean', 'Korean Language and Literature', 3);
+insert into course values ('KORE402', 'The States', 'Korean Language and Literature', 3);
+insert into course values ('PHIL101', 'The ancient', 'Philosophy', 3);
+insert into course values ('PSYC202', 'Who am I', 'Psychology', 3);
+insert into course values ('LING301', 'Literature', 'Library and Information Science', 3);
+insert into course values ('COMM102', 'Trade', 'Commerce and Trade', 3);
+insert into course values ('ADMI202', 'Administrator', 'Administration', 3);
+insert into course values ('POLI302', 'Government', 'Political Science and Diplomacy', 3);
+insert into course values ('MECH202', 'Fluid Dynamics', 'Mechanical Engineering', 3);
+insert into course values ('ARCH302', 'Design', 'Architecture', 3);
+
+insert into prereq values ('COSE102', 'COSE101');
+insert into prereq values ('KORE402', 'KORE401');
+
+insert into section values ('COSE101', '01', '1', '2018', 'Informatics BLDG', '101', '01');
+insert into section values ('COSE101', '01', '1', '2019', 'Informatics BLDG', '102', '02');
+insert into section values ('COSE102', '01', '2', '2019', 'Informatics BLDG', '103', '03');
+insert into section values ('MECH202', '01', '2', '2019', 'Engineering BLDG', '101', '05');
+insert into section values ('ARCH302', '01', '2', '2019', 'Engineering BLDG', '102', '06');
+insert into section values ('KORE401', '01', '1', '2019', 'Liberal Arts BLDG', '101', '11');
+insert into section values ('KORE402', '01', '2', '2019', 'Liberal Arts BLDG', '102', '11');
+insert into section values ('PHIL101', '01', '1', '2019', 'Liberal Arts BLDG', '103', '12');
+insert into section values ('PSYC202', '01', '2', '2019', 'Liberal Arts BLDG', '101', '13');
+insert into section values ('LING301', '01', '1', '2019', 'Social Sciences BLDG', '101', '14');
+insert into section values ('LING301', '02', '1', '2019', 'Social Sciences BLDG', '102', '14');
+insert into section values ('COMM102', '01', '2', '2019', 'Social Sciences BLDG', '103', '15');
+insert into section values ('ADMI202', '01', '2', '2019', 'Social Sciences BLDG', '101', '15');
+insert into section values ('POLI302', '01', '2', '2019', 'Social Sciences BLDG', '102', '15');
+
+// 2016001001 다른 해에 선수과목 듣기
+// 2016001002 같은 해에 선수과목 듣기
+// 2016002001 같은 학기에 선수과목 듣기
+// 2016002002 이중전공 COSE101 듣기
+// 2017005001 같은과목 1분반 수업 듣기
+// 2017005002 같은과목 2분반 수업듣기
+insert into takes values ('2016001001', 'COSE101', '01', '1', '2018', 'A+');
+insert into takes values ('2016001001', 'COSE102', '01', '2', '2019', 'A');
+insert into takes values ('2016001002', 'COSE101', '01', '1', '2019', 'B+');
+insert into takes values ('2016001002', 'COSE102', '01', '2', '2019', 'B');
+insert into takes values ('2016002001', 'KORE401', '01', '1', '2019', 'C+');
+insert into takes values ('2016002001', 'KORE402', '01', '2', '2019', 'C+');
+insert into takes values ('2016002002', 'COSE101', '01', '1', '2019', 'F');
+insert into takes values ('2017005001', 'LING301', '01', '1', '2019', 'D+');
+insert into takes values ('2017005002', 'LING301', '02', '1', '2019', 'D');
+
+insert into takes values ('2016002003', 'KORE401', '01', '1', '2019', 'A+');
+insert into takes values ('2016003001', 'PHIL101', '01', '1', '2019', 'A');
+insert into takes values ('2017003001', 'PHIL101', '01', '1', '2019', 'B+');
+insert into takes values ('2017004001', 'PSYC202', '01', '2', '2019', 'B');
+insert into takes values ('2017006001', 'COMM102', '01', '2', '2019', 'C+');
+insert into takes values ('2018006001', 'COMM102', '01', '2', '2019', 'C');
+insert into takes values ('2018006002', 'COMM102', '01', '2', '2019', 'D+');
+insert into takes values ('2018007001', 'ADMI202', '01', '2', '2019', 'D');
+insert into takes values ('2018007002', 'ADMI202', '01', '2', '2019', 'F');
+insert into takes values ('2018008001', 'POLI302', '01', '2', '2019', 'A+');
+insert into takes values ('2019008001', 'POLI302', '01', '2', '2019', 'A+');
+insert into takes values ('2019009001', 'MECH202', '01', '2', '2019', 'A+');
+insert into takes values ('2019009002', 'MECH202', '01', '2', '2019', 'A+');
+insert into takes values ('2019010001', 'ARCH302', '01', '2', '2019', 'A+');
+insert into takes values ('2019010002', 'ARCH302', '01', '2', '2019', 'A+');
+
+insert into teaches values ('000001', 'COSE101', '01', '1', '2018');
+insert into teaches values ('000001', 'COSE101', '01', '1', '2019'); 
+insert into teaches values ('000005', 'COSE102', '01', '2', '2019');
+insert into teaches values ('000002', 'KORE401', '01', '1', '2019');
+insert into teaches values ('000002', 'KORE402', '01', '2', '2019');
+insert into teaches values ('000006', 'LING301', '01', '1', '2019');
+insert into teaches values ('000006', 'LING301', '02', '1', '2019');
+insert into teaches values ('000003', 'PHIL101', '01', '1', '2019');
+insert into teaches values ('000004', 'PSYC202', '01', '2', '2019');
+insert into teaches values ('000007', 'COMM102', '01', '2', '2019');
+insert into teaches values ('000008', 'ADMI202', '01', '2', '2019');
+insert into teaches values ('000009', 'POLI302', '01', '2', '2019');
+insert into teaches values ('000010', 'MECH202', '01', '2', '2019');
+insert into teaches values ('000011', 'ARCH302', '01', '2', '2019');
+
+alter table table_name alter column column_name [SET DATA] type data_type;
+type enum and tinyint do not exist.
+alter table table_name add constraint constraint_name foreign key (column) references table_name (column);
+alter table table_name drop constraint constraint_name;
+prohibit renaming database name
