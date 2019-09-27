@@ -16,3 +16,15 @@ let rec range n m a =
 let ll = range 1 100 [];;
 
 let length l = fold_left (fun a x -> a+ 1) 0 l;;
+
+length ll;;
+
+let rec filter f l =
+  match l with
+    [] -> []
+    | h::t -> if f h then (filter f t) else l;;
+
+let drop
+= filter (fun x -> x mod 2 = 1);; (*TODO*)
+
+drop [1; 3; 5; 6; 7];;
