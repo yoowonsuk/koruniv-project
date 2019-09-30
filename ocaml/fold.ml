@@ -28,3 +28,8 @@ let drop
 = filter (fun x -> x mod 2 = 1);; (*TODO*)
 
 drop [1; 3; 5; 6; 7];;
+
+let rec iter (n, f) a
+= if n = 0 then a else iter ((n-1), f) (f a);;
+
+iter(10, fun x -> x + 2) 0;;
