@@ -1,0 +1,76 @@
+1번
+\d course
+<답> select title from course where dept_name = 'Comp. Sci.' and credits = 3;
+
+\d takes
+\d instructor
+\d teaches
+<답> select distinct takes.id from takes, instructor natural join teaches where (takes.course_id, takes.sec_id, takes.semester, takes.year) = (teaches.course_id, teaches.sec_id, teaches.semester, teaches.year) and instructor.name = 'Einstein';
+
+\d instructor
+<답> select max(salary) from instructor;
+
+\d instructor
+<답> select * from instructor where salary = (select max(salary) from instructor);
+
+\d section
+\d takes
+select course_id, sec_id, count(ID) as enrollment from takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id;
+<답> select section.course_id, section.sec_id, count(id) as enrollment from section left join takes on (section.course_id, section.sec_id, section.semester, section.year) = (takes.course_id, takes.sec_id, takes.semester, takes.year) where ('Fall', 2009) = (section.semester, section.year) group by section.course_id, section.sec_id;
+
+\d section
+\d takes
+<답> select * from (select course_id, sec_id, count(id) from section natural left join takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as t(ci, si, c) where t.c = (select max(co) from (select count(id) from section natural left join takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as s(co));
+<답> with t(ci, si, c) as (select course_id, sec_id, count(id) from section natural left join takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) select ci, si, c from t where t.c = (select max(c) from t);
+select ci, si, max(c) from (select course_id, sec_id, count(*) from takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as t(ci, si, c) group by ci, si;
+select max(c) from (select course_id, sec_id, count(*) from takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as t(ci, si, c);
+select ci, si from (select course_id, sec_id, count(*) from takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as t(ci, si, c);
+
+\d section
+\d takes
+<답> select ci, si from (select course_id, sec_id, count(*) from section natural join takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as t(ci, si, c) where t.c = (select max(co) from (select count(*) from takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) as s(co));
+<답> with t(ci, si, c) as (select course_id, sec_id, count(*) from section natural join takes where ('Fall', 2009) = (semester, year) group by course_id, sec_id) select ci, si from t where t.c = (select max(c) from t);
+
+
+---------
+
+2번
+create table grade_points(
+	grade varchar(2) primary key,
+	points numeric(2,1) 
+);
+
+insert into grade_points values ('A+', 4.3), ('A', 4.0), ('A-', 3.7), ('B+', 3.3), ('B', 3.0), ('B-', 2.7), ('C+', 2.3), ('C', 2.0), ('C-', 1.7), ('F', 0);
+
+<정답> with t(si, c, p) as (select student.id, credits, points from student left join takes on student.id = takes.id left join course on takes.course_id = course.course_id left join grade_points on takes.grade = grade_points.grade) select case when sum(p*c) is null then 0 else sum(p*c) end from t where si='70557';
+decode 함수 x
+with t(i, c, p) as (select id, credits, points from takes natural left join course natural left join grade_points) select sum(c * p) from t where i = '12345';
+(select sum(credits * points) from takes natural join course natural join grade_points where ID = '70557')
+union (select 0 from student where id = '70557' and not exists (select * from takes where id = '70557'));
+(select sum(credits * points) from takes natural join course natural join grade_points where ID = '12345')
+union (select 0 from student where id = '12345' and not exists (select * from takes where id = '12345'));
+select sum(credits * points) from takes left join course on takes.course_id = course.course_id natural join grade_points where ID = '70557';
+
+<정답> with t(si, c, p) as (select student.id, credits, points from student left join takes on student.id = takes.id left join course on takes.course_id = course.course_id left join grade_points on takes.grade = grade_points.grade) select case when avg(p*c) is null then 0 else avg(p*c) end from t where si='70557';
+
+<정답> with t(si, c, p, cc) as (select student.id, credits, points, case when points is null then null else credits end from student left join takes on student.id = takes.id left join course on takes.course_id = course.course_id left join grade_points on takes.grade = grade_points.grade)
+ select si, case when count(p) = 0 then 0 else sum(p*cc)/sum(cc) end from t group by si;
+
+
+
+-----------
+
+3번
+\d instructor
+update instructor set salary = salary * 1.1 where dept_name = 'Comp. Sci.';
+
+\d course
+\d section
+delete from course as C where not exists (select course_id from section as S where C.course_id = S.course_id);
+select course_id from section where semester = 'Fall' and year = 2009 and course_id in (select course_id from section where semester = 'Spring' and year = 2010);
+select course_id from section as S where semester = 'Fall' and year= 2009 and exists (select * from section as T where semester = 'Spring' and year= 2010 and S.course_id= T.course_id); 
+select course_id from section as S where semester = 'Fall' and year= 2009 and exists (select * from section as T where semester = 'Spring' and year= 2010); 
+
+\d instructor
+\d student
+insert into instructor (select ID, name, dept_name, 30000 from student where tot_cred > 100);
