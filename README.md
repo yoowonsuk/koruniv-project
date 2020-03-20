@@ -6,3 +6,6 @@ Design and Implementation of Programming Language and be accustomed to Functiona
 
 # postgrsql
 SQL and DBMS
+
+# Kaldi
+Implement Voice to Word represenation based on docker environment.
